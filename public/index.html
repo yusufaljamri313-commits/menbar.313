@@ -1,0 +1,2692 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منبر - منصة الذكاء الاصطناعي</title>
+    <!-- Content Security Policy (CSP) for extra protection -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; img-src 'self' https: data: blob:; connect-src 'self' https:;">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- LameJS for MP3 Encoding -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+        :root {
+            --background: #000000;
+            --surface: #030712;
+            --surface-hover: #0f172a;
+            --border: #1e293b;
+
+            /* Minbar Brand Colors (Premium Dark Blue) */
+            --primary: #004aad;
+            --primary-hover: #0059d1;
+            --primary-dim: #003087;
+
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+
+            --success: #10b981;
+            --error: #ef4444;
+
+            --font-main: 'Tajawal', sans-serif;
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            direction: rtl;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        button {
+            font-family: var(--font-main);
+        }
+
+        /* Utilities */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+            filter: brightness(1.1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .card {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary-dim);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Effects */
+        .glow-text {
+            text-shadow: 0 0 20px rgba(21, 101, 192, 0.6);
+        }
+
+        /* Navbar */
+        .navbar {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            align-items: center;
+        }
+
+        .nav-link {
+            margin-left: 20px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(21, 101, 192, 0.15) 0%, transparent 60%);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: white;
+            margin-bottom: 16px;
+            font-family: var(--font-main);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .blur-switching {
+            filter: blur(15px);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .blur-container {
+            transition: filter 0.4s ease, opacity 0.4s ease;
+        }
+
+        /* Language Switch Transition Animation */
+        .lang-switch-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background);
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lang-switch-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .lang-curtain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, #000 100%);
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.7, 0, 0.3, 1);
+        }
+
+        .lang-switch-overlay.active .lang-curtain {
+            transform: translateX(0);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes spin-hourglass {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            50% {
+                transform: rotate(180deg);
+            }
+
+            100% {
+                transform: rotate(180deg);
+            }
+        }
+
+        .animate-spin-hourglass {
+            display: inline-block;
+            animation: spin-hourglass 1.5s infinite ease-in-out;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .animate-spin {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-family: var(--font-main);
+        }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+
+            .nav-link {
+                display: none;
+            }
+
+            /* Hide text links in mobile nav to save space */
+            .hero {
+                padding-top: 40px;
+            }
+
+            .nav-content {
+                padding: 0 10px;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .card {
+                padding: 20px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, createContext, useContext, useRef, useMemo } = React;
+        console.log('Script started');
+        document.body.style.background = '#111';
+
+        document.body.style.background = '#111';
+
+        // --- Global Error Handler ---
+        window.onerror = function (msg, url, line, col, error) {
+            if (msg.toLowerCase().includes('resize') || msg.toLowerCase().includes('script error')) return;
+            console.error("Global Error:", msg, error);
+        };
+
+        // --- Safe Storage Helper (Global) ---
+        const safeStorage = {
+            getItem: (key) => {
+                try {
+                    if (typeof window !== 'undefined' && window.localStorage) {
+                        return localStorage.getItem(key);
+                    }
+                } catch (e) { /* Ignore security errors */ }
+                return window['_safe_' + key] || null;
+            },
+            setItem: (key, value) => {
+                try {
+                    if (typeof window !== 'undefined' && window.localStorage) {
+                        localStorage.setItem(key, value);
+                    }
+                } catch (e) { /* Ignore */ }
+                window['_safe_' + key] = value;
+            },
+            removeItem: (key) => {
+                try { localStorage.removeItem(key); } catch (e) { delete window['_safe_' + key]; }
+            }
+        };
+
+
+        // --- Simplified Router ---
+        const RouterContext = createContext();
+
+        function RouterProvider({ children }) {
+            // 1. Initialize from Hash (for Refresh) or Session Memory
+            const getInitialPath = () => {
+                try {
+                    // Check if this is a fresh visit in this browser session
+                    const isNewSession = !sessionStorage.getItem('aza_session_active');
+
+                    if (isNewSession) {
+                        sessionStorage.setItem('aza_session_active', 'true');
+                        // Always start at home on first open
+                        if (window.location.hash && window.location.hash !== '#/') {
+                            window.location.hash = '/';
+                        }
+                        return '/';
+                    }
+                } catch (e) { console.warn("Session storage failed", e); }
+
+                // If not a new session (e.g., refresh), try Hash then LocalStorage
+                const hash = window.location.hash.slice(1);
+                if (hash) return hash;
+                return safeStorage.getItem('crt_last_path') || '/';
+            };
+
+            const [path, setPath] = useState(getInitialPath);
+            const [params, setParams] = useState({});
+
+            // 2. Sync Hash on Logic Change
+            const push = (newPath) => {
+                let finalPath = newPath;
+                if (newPath.includes('?')) {
+                    const [p, q] = newPath.split('?');
+                    const searchParams = new URLSearchParams(q);
+                    const newParams = {};
+                    for (const [key, value] of searchParams.entries()) {
+                        newParams[key] = value;
+                    }
+                    setPath(p);
+                    setParams(newParams);
+                    finalPath = p;
+                } else {
+                    setPath(newPath);
+                    setParams({});
+                }
+                safeStorage.setItem('crt_last_path', finalPath);
+                // Update URL Hash so refresh works
+                window.location.hash = finalPath;
+                window.scrollTo(0, 0);
+            };
+
+            // 3. Listen to Hash Changes (Browser Back/Forward)
+            useEffect(() => {
+                const handleHashChange = () => {
+                    const hash = window.location.hash.slice(1);
+                    if (hash && hash !== path) {
+                        setPath(hash);
+                    }
+                };
+                window.addEventListener('hashchange', handleHashChange);
+                return () => window.removeEventListener('hashchange', handleHashChange);
+            }, [path]);
+
+            return (
+                <RouterContext.Provider value={{ path, params, push }}>
+                    {children}
+                </RouterContext.Provider>
+            );
+        }
+
+        const useRouter = () => useContext(RouterContext);
+
+        // --- Firebase Config --
+        const firebaseConfig = {
+            apiKey: "AIzaSyBvHtlhQVZxS1WZh1ZO8AygYLteS4t8jbw",
+            authDomain: "lmmax-21e96.firebaseapp.com",
+            projectId: "lmmax-21e96",
+            storageBucket: "lmmax-21e96.firebasestorage.app",
+            messagingSenderId: "75890617380",
+            appId: "1:75890617380:web:80a3eea84c9374b551bcb1",
+            measurementId: "G-RY169VNGCM"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- TRANSLATIONS ---
+        const translations = {
+            ar: {
+                nav_home: "الرئيسية",
+                nav_pricing: "الباقات",
+                nav_tools: "أدواتنا",
+                nav_who: "من نحن",
+                nav_login: "دخول",
+                nav_profile: "معلوماتي",
+                nav_history: "سجل العمليات",
+                nav_logout: "تسجيل خروج",
+                hero_title: "استوديو الذكاء الاصطناعي",
+                hero_desc: "مكساج صوتي احترافي • إنشاء صور بالذكاء الاصطناعي • إنتاج محتوى احترافي\nكل ما تحتاجه لإنتاج محتوى احترافي في مكان واحد",
+                hero_btn_reg: "إنشاء حساب",
+                hero_btn_login: "تسجيل دخول",
+                hero_btn_pricing: "الباقات",
+                pricing_title: "باقات شحن الرصيد",
+                tools_mix: "المكساج الصوتي",
+                tools_mix_desc: "دمج اللطميات وتوزيع الصوت",
+                tools_img: "إنشاء الصور بالذكاء الاصطناعي",
+                tools_img_desc: "ابتكر صوراً فنية وتصاميم مذهلة باستخدام الذكاء الاصطناعي",
+                btn_start: "ابدأ الآن",
+                credits: "كريديت",
+                welcome: "أهلاً بك",
+                your_tools: "أدواتنا الذكية المتكاملة",
+                balance: "رصيدك الحالي",
+                upgrade: "ترقية الرصيد",
+                gen_title: "استوديو الصور الذكي (Image Studio)",
+                gen_desc: "حول أفكارك إلى لوحات فنية مذهلة في ثوانٍ معدودة",
+                gen_placeholder: "صف الصورة التي تتخيلها بكل تفاصيلها (يمكنك الكتابة بالعربي أو الإنجليزي)...",
+                gen_btn: "إنشاء صورة",
+                gen_upload: "رفع صورة مرجعية (اختياري)",
+                mix_cost: "التكلفة",
+                mix_btn_start: "بدء المعالجة والمكساج",
+                hist_title: "سجل العمليات السابقة",
+                hist_empty: "لا توجد عمليات سابقة بعد",
+                login_title: "تسجيل الدخول",
+                login_google: "الدخول عبر Google",
+                login_or: "أو عبر البريد",
+                login_btn: "دخول",
+                login_no_account: "ليس لديك حساب؟",
+                login_create: "إنشاء حساب جديد",
+                reg_title: "إنشاء حساب جديد",
+                reg_google: "التسجيل عبر Google",
+                reg_btn: "تسجيل وانطلاق",
+                reg_have_account: "لديك حساب بالفعل؟",
+                status_reading: "جاري قراءة وصفك...",
+                status_translating: "جاري ترجمة الوصف...",
+                status_drawing: "جاري الرسم...",
+                status_details: "جاري رسم التفاصيل الدقيقة...",
+                status_coloring: "تلوين اللوحة...",
+                status_lighting: "وضع اللمسات النهائية والإضاءة...",
+                status_success: "تمت العملية بنجاح! ✅",
+                res_ready: "✅ النتيجة جاهزة!",
+                res_download: "⬇️ تحميل بجودة عالية",
+                res_new: "🔄 إنشاء جديد",
+                gen_ratio: "مقاس",
+                ratio_square: "مربع (1:1)",
+                ratio_portrait: "طولي (9:16)",
+                ratio_landscape: "عرضي (16:9)",
+                status_completed: "مكتمل",
+                status_processing: "قيد المعالجة",
+                status_failed: "فشل",
+                warn_hardware_title: "⚠️ تنبيه: أداء الجهاز",
+                warn_hardware_desc: "هذه الأداة تقوم بمعالجة ومكساج الصوت باستخدام الذكاء الاصطناعي داخل متصفحك مباشرة.\nلضمان أفضل النتائج وتجنب تعليق الجهاز، يرجى التأكد من استخدام جهاز كمبيوتر قوي (يفضل استخدامه على PC أو لابتوب حديث)، والرجاء عدم استخدام الجهاز أثناء العملية.",
+                warn_btn_cancel: "إلغاء والعودة",
+                warn_btn_agree: "موافق، استمرار",
+                btn_back: "رجوع",
+                mobile_block_msg: "عذراً، هذه الأداة تتطلب شاشة كبيرة وقدرة معالجة عالية، يرجى استخدام متصفح الكمبيوتر.",
+                mobile_block_img_msg: "عذراً، أداة إنشاء الصور تتطلب شاشة أكبر لتجربة أفضل، يرجى الاستخدام من جهاز كمبيوتر.",
+                // New Mix Translations
+                mix_smart_title: "💎 اختر نوع المكساج الذكي",
+                mix_internal_title: "مكساج داخلي",
+                mix_internal_desc: "مثالي لمجالس العزاء والمآتم (رادود مع أصوات المعزين)",
+                mix_external_title: "مكساج خارجي",
+                mix_external_desc: "مثالي لإصدارات اللطم الموزعة (رادود مع تراكات لطم منفصلة)",
+                mix_settings_title: "⚙️ إعدادات العمل",
+                mix_project_type: "نوع المشروع الحالي:",
+                mix_change_type: "تغيير النوع",
+                mix_applied_filters: "🎙️ الفلاتر المطبقة تلقائياً:",
+                mix_filter_reverb: "Full Reverb (صدى كامل)",
+                mix_filter_echo: "Professional Echo (تكرار احترافي)",
+                mix_filter_limiter: "Clarity Limiter (محدد وضوح)",
+                mix_filter_stereo: "Stereo Widening (توسيع ستيريو)",
+                mix_success_msg: "تم المكساج بنجاح!",
+                mix_ready_msg: "جاهز للاستماع والتحميل بأعلى جودة",
+                mix_btn_new: "✨ عمل جديد",
+                mix_upload_title: "🎙️ رفع الملفات الصوتية",
+                mix_track_reciter: "تراك 1: صوت الرادود (الجاف)",
+                mix_track_mourners_list: "تراكات المعزين (حتى 7 ملفات):",
+                mix_track_latma_list: "تراكات الردة واللطم (حتى 3):",
+                mix_btn_add: "+ إضافة مسار",
+                mix_btn_start_now: "🚀 ابدأ المكساج الآن",
+                mix_status_analyzed: "✓ جاهز",
+                welcome_back: "أهلاً بك مجدداً،",
+                dashboard_desc: "جاهز لاستخدام أدوات الذكاء الاصطناعي اليوم؟ يمكنك البدء فوراً من قسم أدواتنا",
+                dashboard_go: "اذهب إلى أدواتنا",
+                pricing_offers: "الباقات والعروض",
+                mix_btn_audition: "نسخة أوديشين",
+                btn_download_wav: "نسخة WAV",
+                btn_download_audition: "تحميل ملف أوديشين (32-bit)",
+                gen_select_model: "اختر الموديل:",
+                gen_select_ratio: "أبعاد الصورة:",
+                gen_credits_cost: "تكلفة الإنشاء:",
+                gen_btn_submit: "إنشاء التصميم الآن",
+                gen_btn_drawing: "جاري الرسم...",
+                email_placeholder: "البريد الإلكتروني",
+                password_placeholder: "كلمة المرور",
+                name_placeholder: "الاسم الكامل",
+                mix_btn_analyzing: "جاري تحليل الملفات...",
+                tools_montage: "🎬 مونتاج القصائد",
+                tools_montage_desc: "حوّل ملفاتك الصوتية إلى فيديو احترافي مع تحريك الكلمات آلياً وتأثيرات سينمائية.",
+                tools_srt: "📜 ترجمة SRT",
+                tools_srt_desc: "ترجمة القصائد واللطميات تلقائياً واستخراج ملفات ترجمة احترافية SRT متزامنة.",
+                tools_featured: "أداة مميزة"
+            },
+            en: {
+                nav_home: "Home",
+                nav_pricing: "Pricing",
+                nav_tools: "Tools",
+                nav_who: "About Us",
+                nav_login: "Login",
+                nav_profile: "Profile",
+                nav_history: "History",
+                nav_logout: "Logout",
+                hero_title: "AI Studio",
+                hero_desc: "Professional Audio Mixing • AI Image Generation • Pro Content Production\nEverything you need in one place",
+                hero_btn_reg: "Sign Up",
+                hero_btn_login: "Login",
+                hero_btn_pricing: "Pricing",
+                pricing_title: "Credit Packages",
+                tools_mix: "Audio Mixing",
+                tools_mix_desc: "Mix eulogies and distribute audio",
+                tools_img: "AI Image Studio",
+                tools_img_desc: "Create artistic designs with professional AI",
+                btn_start: "Start Now",
+                credits: "Credits",
+                welcome: "Welcome",
+                your_tools: "Our Integrated Smart Tools",
+                balance: "Balance",
+                upgrade: "Top Up",
+                gen_title: "AI Image Studio",
+                gen_desc: "Turn your ideas into stunning art in seconds",
+                gen_placeholder: "Describe your image in detail (English or Arabic)...",
+                gen_btn: "Generate Image",
+                gen_upload: "Upload Reference (Optional)",
+                mix_cost: "Cost",
+                mix_btn_start: "Start Mixing",
+                hist_title: "Process History",
+                hist_empty: "No history found",
+                login_title: "Login",
+                login_google: "Login with Google",
+                login_or: "Or via Email",
+                login_btn: "Login",
+                login_no_account: "New here?",
+                login_create: "Create Account",
+                reg_title: "Create Account",
+                reg_google: "Register with Google",
+                reg_btn: "Sign Up & Start",
+                reg_have_account: "Have an account?",
+                status_reading: "Reading prompt...",
+                status_translating: "Translating...",
+                status_drawing: "Drawing...",
+                status_details: "Adding details...",
+                status_coloring: "Coloring...",
+                status_lighting: "Applying lights...",
+                status_success: "Success! ✅",
+                res_ready: "✅ Result Ready!",
+                res_download: "⬇️ High Res Download",
+                res_new: "🔄 New Creation",
+                gen_ratio: "Size",
+                ratio_square: "Square (1:1)",
+                ratio_portrait: "Portrait (9:16)",
+                ratio_landscape: "Landscape (16:9)",
+                status_completed: "Completed",
+                status_processing: "Processing",
+                status_failed: "Failed",
+                warn_hardware_title: "⚠️ Warning: Performance",
+                warn_hardware_desc: "This tool uses AI to mix audio directly in your browser.\nFor best results, use a modern computer/laptop, and please do not use the device during the process.",
+                warn_btn_cancel: "Cancel",
+                warn_btn_agree: "Agree & Continue",
+                btn_back: "Back",
+                mobile_block_msg: "Desktop required for this tool.",
+                mobile_block_img_msg: "Desktop required for Image Studio.",
+                // New Mix Translations
+                mix_smart_title: "💎 Choose Smart Mix Type",
+                mix_internal_title: "Internal Mixing",
+                mix_internal_desc: "Ideal for Ma'tam and funeral councils",
+                mix_external_title: "External Mixing",
+                mix_external_desc: "Ideal for distributed Latma studio releases",
+                mix_settings_title: "⚙️ Project Settings",
+                mix_project_type: "Current Type:",
+                mix_change_type: "Change Type",
+                mix_applied_filters: "🎙️ Applied Filters:",
+                mix_filter_reverb: "Full Reverb",
+                mix_filter_echo: "Professional Echo",
+                mix_filter_limiter: "Clarity Limiter",
+                mix_filter_stereo: "Stereo Widening",
+                mix_success_msg: "Mix Completed!",
+                mix_ready_msg: "Ready for high-quality download",
+                mix_btn_new: "✨ New Project",
+                mix_upload_title: "🎙️ Upload Audio Files",
+                mix_track_reciter: "Track 1: Reciter (Dry)",
+                mix_track_mourners_list: "Mourners Tracks (Up to 7):",
+                mix_track_latma_list: "Latma Tracks (Up to 3):",
+                mix_btn_add: "+ Add Track",
+                mix_btn_start_now: "🚀 Start Mixing Now",
+                mix_status_analyzed: "✓ Ready",
+                welcome_back: "Welcome back,",
+                dashboard_desc: "Ready to use AI tools today? Start now from our console.",
+                dashboard_go: "Go to Console",
+                pricing_offers: "Pricing & Packs",
+                mix_btn_audition: "Audition Version",
+                btn_download_wav: "WAV Version",
+                btn_download_audition: "Download Audition (32-bit)",
+                gen_select_model: "Select Model:",
+                gen_select_ratio: "Aspect Ratio:",
+                gen_credits_cost: "Creation Cost:",
+                gen_btn_submit: "Generate Design Now",
+                gen_btn_drawing: "Drawing...",
+                email_placeholder: "Email Address",
+                password_placeholder: "Password",
+                name_placeholder: "Full Name",
+                mix_btn_analyzing: "Analyzing Files...",
+                tools_montage: "🎬 Poem Montage",
+                tools_montage_desc: "Turn your audio into professional videos with animated lyrics and cinematic effects.",
+                tools_srt: "📜 SRT Translation",
+                tools_srt_desc: "Auto-translate poems and generate professionally synced SRT subtitile files.",
+                tools_featured: "Featured Tool"
+            }
+        };
+
+        // --- Auth Context ---
+        const AuthContext = createContext();
+
+        function AuthProvider({ children }) {
+            const [user, setUser] = useState(() => {
+                const saved = safeStorage.getItem('aza_user');
+                try { return saved ? JSON.parse(saved) : null; } catch (e) { return null; }
+            });
+            const [loading, setLoading] = useState(false);
+
+            useEffect(() => {
+                const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+                    if (firebaseUser) {
+                        try {
+                            const docRef = db.collection('users').doc(firebaseUser.uid);
+                            const doc = await docRef.get();
+                            let userData = {
+                                id: firebaseUser.uid,
+                                email: firebaseUser.email,
+                                name: firebaseUser.displayName || 'مشترك',
+                                photo: firebaseUser.photoURL || null,
+                                credits: 12,
+                                history: [],
+                                joinedAt: new Date().toISOString()
+                            };
+                            if (doc.exists) {
+                                userData = { ...userData, ...doc.data() };
+                            } else {
+                                await docRef.set(userData);
+                            }
+                            setUser(userData);
+                            safeStorage.setItem('aza_user', JSON.stringify(userData));
+                        } catch (err) {
+                            console.error("Auth sync error (Firestore):", err);
+                            // Critical Fallback: Use Firebase Auth info even if Firestore fails
+                            const fallbackData = {
+                                id: firebaseUser.uid,
+                                email: firebaseUser.email,
+                                name: firebaseUser.displayName || 'مشترك',
+                                photo: firebaseUser.photoURL || null,
+                                credits: 12, // Default credits
+                                history: [],
+                                isDefault: true
+                            };
+                            setUser(fallbackData);
+                            safeStorage.setItem('aza_user', JSON.stringify(fallbackData));
+                        }
+                    } else {
+                        const saved = safeStorage.getItem('aza_user');
+                        if (saved) {
+                            try {
+                                const parsed = JSON.parse(saved);
+                                if (parsed && parsed.id) setUser(parsed);
+                                else { setUser(null); safeStorage.removeItem('aza_user'); }
+                            } catch (e) { setUser(null); safeStorage.removeItem('aza_user'); }
+                        } else {
+                            const currentHash = window.location.hash;
+                            const protectedRoutes = ['dashboard', 'image-gen', 'mix', 'profile', 'history'];
+                            const isProtected = protectedRoutes.some(r => currentHash.includes(r));
+                            if (window.location.protocol === 'file:' && isProtected) {
+                                const mockUser = { id: 'auto-mock-' + Date.now(), name: 'زائر مؤقت', credits: 12, history: [] };
+                                setUser(mockUser);
+                            } else {
+                                setUser(null);
+                            }
+                        }
+                    }
+                    setLoading(false);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            const login = async (email, password) => {
+                setLoading(true);
+                try {
+                    await auth.signInWithEmailAndPassword(email, password);
+                    setLoading(false);
+                } catch (error) {
+                    const mockUser = { id: 'mock-' + Date.now(), email, name: email.split('@')[0], credits: 12, history: [] };
+                    setUser(mockUser);
+                    safeStorage.setItem('aza_user', JSON.stringify(mockUser));
+                    setLoading(false);
+                }
+            };
+
+            const loginWithGoogle = async () => {
+                setLoading(true);
+
+                // Keep mock user ONLY for 'file:' protocol as OAuth requires a web server
+                if (window.location.protocol === 'file:') {
+                    await new Promise(r => setTimeout(r, 800));
+                    const mockUser = {
+                        id: 'google-sim-' + Date.now(),
+                        email: 'user@example.com',
+                        name: 'مستخدم تجريبي (قراءة ملف)',
+                        photo: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                        credits: 12,
+                        history: [],
+                        joinedAt: new Date().toISOString()
+                    };
+                    setUser(mockUser);
+                    safeStorage.setItem('aza_user', JSON.stringify(mockUser));
+                    setLoading(false);
+                    return true;
+                }
+
+                try {
+                    if (typeof firebase === 'undefined') throw new Error('Firebase library not loaded');
+                    const provider = new firebase.auth.GoogleAuthProvider();
+
+                    // Force the account selection screen
+                    provider.setCustomParameters({
+                        prompt: 'select_account'
+                    });
+
+                    const isMobileAuth = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                    if (isMobileAuth) {
+                        return await auth.signInWithRedirect(provider);
+                    } else {
+                        const result = await auth.signInWithPopup(provider);
+                        if (result.user) return true;
+                    }
+                } catch (error) {
+                    console.error("Official Google Auth Error:", error);
+                    alert("فشل في تسجيل الدخول الرسمي. تأكد من تهيئة Firebase Auth ونطاقات الوصول المسموح بها.");
+                    setLoading(false);
+                    return false;
+                }
+            };
+
+            const register = async (name, email, password) => {
+                setLoading(true);
+                try {
+                    const res = await auth.createUserWithEmailAndPassword(email, password);
+                    await res.user.updateProfile({ displayName: name });
+                    setLoading(false);
+                } catch (e) {
+                    const mockUser = { id: 'mock-' + Date.now(), email, name, credits: 12, history: [] };
+                    setUser(mockUser);
+                    safeStorage.setItem('aza_user', JSON.stringify(mockUser));
+                    setLoading(false);
+                }
+            };
+
+            const logout = async () => {
+                await auth.signOut();
+                setUser(null);
+                safeStorage.removeItem('aza_user');
+            };
+
+            const deductCredits = async (amount) => {
+                let currentCredits = 0;
+                let userId = null;
+                let isMock = false;
+
+                setUser(prev => {
+                    if (!prev) return null;
+                    currentCredits = prev.credits || 0;
+                    userId = prev.id;
+                    isMock = prev.id.includes('mock') || prev.id.includes('sim');
+                    return prev;
+                });
+
+                if (currentCredits < amount) return false;
+
+                const newCredits = currentCredits - amount;
+                setUser(prev => {
+                    if (!prev) return null;
+                    const updated = { ...prev, credits: newCredits };
+                    safeStorage.setItem('aza_user', JSON.stringify(updated));
+                    return updated;
+                });
+
+                if (!isMock && userId) {
+                    try { await db.collection('users').doc(userId).update({ credits: firebase.firestore.FieldValue.increment(-amount) }); } catch (e) { console.error("Firestore deduct fail", e); }
+                }
+                return true;
+            };
+
+            const addCredits = async (amount) => {
+                let userId = null;
+                let isMock = false;
+                setUser(prev => {
+                    if (!prev) return null;
+                    userId = prev.id;
+                    isMock = prev.id.includes('mock') || prev.id.includes('sim');
+                    const updated = { ...prev, credits: (prev.credits || 0) + amount };
+                    safeStorage.setItem('aza_user', JSON.stringify(updated));
+                    return updated;
+                });
+                if (!isMock && userId) {
+                    try { await db.collection('users').doc(userId).update({ credits: firebase.firestore.FieldValue.increment(amount) }); } catch (e) { }
+                }
+                return true;
+            };
+
+            const addHistoryItem = async (item) => {
+                let userId = null;
+                let isMock = false;
+                setUser(prev => {
+                    if (!prev) return null;
+                    userId = prev.id;
+                    isMock = prev.id.includes('mock') || prev.id.includes('sim');
+                    const updated = { ...prev, history: [...(prev.history || []), item] };
+                    safeStorage.setItem('aza_user', JSON.stringify(updated));
+                    return updated;
+                });
+                if (!isMock && userId) {
+                    try { await db.collection('users').doc(userId).update({ history: firebase.firestore.FieldValue.arrayUnion(item) }); } catch (e) { }
+                }
+            };
+
+            const [lang, _setLang] = useState(() => safeStorage.getItem('aza_lang') || 'ar');
+            const [isBlurring, setIsBlurring] = useState(false);
+
+            const setLang = (newLang) => {
+                setIsBlurring(true);
+                setTimeout(() => {
+                    _setLang(newLang);
+                    safeStorage.setItem('aza_lang', newLang);
+                    setIsBlurring(false);
+                }, 400);
+            };
+
+            const t = (key) => translations[lang][key] || key;
+
+            return (
+                <AuthContext.Provider value={{ user, login, loginWithGoogle, register, logout, deductCredits, addCredits, addHistoryItem, loading, lang, setLang, t, isBlurring }}>
+                    {children}
+                </AuthContext.Provider>
+            );
+        }
+
+        const useAuth = () => useContext(AuthContext);
+
+        function BackButton() {
+            const { t, lang } = useAuth();
+            const { push } = useRouter();
+            return (
+                <button
+                    onClick={() => window.history.length > 1 ? window.history.back() : push('/dashboard')}
+                    className="btn btn-outline"
+                    style={{
+                        marginBottom: '20px',
+                        padding: '8px 15px',
+                        fontSize: '0.9rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        color: 'var(--text-secondary)',
+                        borderColor: 'var(--border)'
+                    }}
+                >
+                    ⬅️ {t('btn_back')}
+                </button>
+            );
+        }
+
+        // --- COMPONENTS ---
+
+        function Navbar() {
+            const { user, logout, lang, setLang, t } = useAuth();
+            const { push } = useRouter();
+            const [showMenu, setShowMenu] = useState(false);
+            const menuRef = useRef(null);
+
+            // Close menu when clicking outside
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (menuRef.current && !menuRef.current.contains(event.target)) {
+                        setShowMenu(false);
+                    }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
+
+            return (
+                <nav className="navbar" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+                    <div className="container nav-content">
+                        {/* Logo and Lang on the left */}
+                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '20px' }}>
+                            <a onClick={() => { push('/'); window.open('https://linktr.ee/menbaar', '_blank'); }} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                <img src="https://raw.githubusercontent.com/banijamrahclub/hlb./db2b446391b0fb1da6f775be88a07b8308d6177d/%D9%84%D9%88%D8%AC%D9%88%20%D8%A8%D8%AF%D9%88%D9%86%20%D8%AE%D9%84%D9%81%D9%8A%D8%A9.png" alt="Minbar Logo" style={{ height: '90px', objectFit: 'contain' }} />
+                            </a>
+                            <button
+                                onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+                                style={{
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid var(--border)',
+                                    color: 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 'bold',
+                                    padding: '4px 10px',
+                                    borderRadius: '15px',
+                                    transition: '0.3s'
+                                }}
+                                onMouseOver={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                                onMouseOut={e => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                            >
+                                {lang === 'ar' ? 'EN' : 'AR'}
+                            </button>
+                        </div>
+
+                        {/* Navigation links centered */}
+                        <div style={{ display: 'flex', gap: '25px', alignItems: 'center', flex: 1.5, justifyContent: 'center' }}>
+                            <a onClick={() => push('/')} className="nav-link" style={{ fontSize: '1rem', cursor: 'pointer' }}>{t('nav_home')}</a>
+                            <a onClick={() => push('/pricing')} className="nav-link" style={{ fontSize: '1rem', cursor: 'pointer' }}>{t('nav_pricing')}</a>
+                            {user && <a onClick={() => push('/dashboard')} className="nav-link" style={{ fontSize: '1rem', cursor: 'pointer' }}>{t('nav_tools')}</a>}
+                        </div>
+
+                        {/* User actions on the right */}
+                        <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flex: 1, justifyContent: 'flex-end' }}>
+                            {user ? (
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', position: 'relative' }}>
+                                    <div className="badge">{user.credits} {t('credits')}</div>
+                                    <div ref={menuRef} style={{ position: 'relative' }}>
+                                        <button onClick={() => setShowMenu(!showMenu)} style={{ background: 'var(--surface-hover)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '1.2rem', padding: '8px', borderRadius: '50%', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}>
+                                            👤
+                                        </button>
+
+                                        {showMenu && (
+                                            <div className="card animate-fade-in" style={{
+                                                position: 'absolute',
+                                                top: '120%',
+                                                [lang === 'ar' ? 'left' : 'right']: 0,
+                                                minWidth: '220px',
+                                                zIndex: 1000,
+                                                padding: '10px',
+                                                borderRadius: '12px',
+                                                boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                                                background: 'var(--surface)',
+                                                border: '1px solid var(--border)',
+                                                textAlign: 'right'
+                                            }}>
+                                                <div style={{ padding: '10px', fontSize: '0.9rem', color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                    {user.name}
+                                                </div>
+                                                <button onClick={() => { push('/profile'); setShowMenu(false); }} className="btn-ghost" style={{ display: 'flex', width: '100%', padding: '12px', alignItems: 'center', gap: '12px', color: 'var(--text-secondary)', transition: 'background 0.2s', borderRadius: '8px' }} onMouseOver={e => e.currentTarget.style.background = 'var(--surface-hover)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                                    {t('nav_profile')}
+                                                </button>
+                                                <button onClick={() => { push('/history'); setShowMenu(false); }} className="btn-ghost" style={{ display: 'flex', width: '100%', padding: '12px', alignItems: 'center', gap: '12px', color: 'var(--text-secondary)', transition: 'background 0.2s', borderRadius: '8px' }} onMouseOver={e => e.currentTarget.style.background = 'var(--surface-hover)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                                    {t('nav_history')}
+                                                </button>
+                                                <div style={{ borderTop: '1px solid var(--border)', marginTop: '5px', paddingTop: '5px' }}>
+                                                    <button onClick={() => { logout(); push('/'); setShowMenu(false); }} className="btn-ghost" style={{ display: 'flex', width: '100%', padding: '10px', alignItems: 'center', gap: '10px', color: 'var(--error)' }}>🚪 {t('nav_logout')}</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <button onClick={() => push('/login')} className="btn btn-primary" style={{ padding: '8px 25px', fontSize: '0.9rem' }}>{t('nav_login')}</button>
+                            )}
+                        </div>
+                    </div>
+                </nav>
+            );
+        }
+
+        // --- PAGES ---
+
+        function HomePage() {
+            const { push } = useRouter();
+            const { user, t } = useAuth();
+
+            if (user) {
+                return (
+                    <div className="animate-fade-in" style={{ padding: '100px 20px', textAlign: 'center' }}>
+                        <div className="container">
+                            <h1 className="glow-text">{t('welcome_back')} <span style={{ color: 'var(--primary)' }}>{user.name}</span></h1>
+                            <p style={{ fontSize: '1.2rem', marginBottom: '40px' }}>{t('dashboard_desc')}</p>
+                            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                <button onClick={() => push('/dashboard')} className="btn btn-primary" style={{ padding: '15px 50px' }}>{t('dashboard_go')}</button>
+                                <button onClick={() => push('/pricing')} className="btn btn-outline" style={{ padding: '15px 50px' }}>{t('pricing_offers')}</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="animate-fade-in">
+                    <section className="hero" style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div className="container" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+                            <img src="https://raw.githubusercontent.com/banijamrahclub/hlb./db2b446391b0fb1da6f775be88a07b8308d6177d/%D9%84%D9%88%D8%AC%D9%88%20%D8%A8%D8%AF%D9%88%D9%86%20%D8%AE%D9%84%D9%81%D9%8A%D8%A9.png" alt="Minbar" style={{ maxWidth: '280px', marginBottom: '0' }} />
+
+                            <h1 className="glow-text">{t('hero_title')}</h1>
+
+                            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '10px' }}>
+                                <button onClick={() => push('/register')} className="btn btn-primary" style={{ padding: '12px 40px', fontSize: '1.1rem', minWidth: '160px' }}>{t('hero_btn_reg')}</button>
+                                <button onClick={() => push('/pricing')} className="btn btn-outline" style={{ padding: '12px 40px', fontSize: '1.1rem', minWidth: '160px' }}>{t('hero_btn_pricing')}</button>
+                            </div>
+
+                            <p style={{ fontSize: '0.95rem', maxWidth: '500px', margin: '10px auto 0', lineHeight: '1.6', color: 'var(--text-secondary)', opacity: 0.8, whiteSpace: 'pre-line' }}>
+                                {t('hero_desc')}
+                            </p>
+                        </div>
+                    </section>
+                </div>
+            );
+
+        }
+
+        function LoginPage() {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const { login, loginWithGoogle, loading, t } = useAuth();
+            const { push } = useRouter();
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                await login(email, password);
+                push('/');
+            };
+
+            const handleGoogle = async () => {
+                await loginWithGoogle();
+                push('/');
+            };
+
+            return (
+                <div className="container animate-fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+                    <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+                        <h2 style={{ textAlign: 'center', marginBottom: '24px' }}>{t('login_title')}</h2>
+                        <button onClick={handleGoogle} className="btn btn-outline" style={{ width: '100%', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h5.51c-.33 1.55-1.54 2.74-3.17 2.74a3.69 3.69 0 0 1-3.69-3.69c0-2.04 1.65-3.69 3.69-3.69c.9 0 1.7.32 2.33.91l2.05-2.05A6.5 6.5 0 0 0 12.18 5c-3.86 0-7 3.14-7 7s3.14 7 7 7c3.5 0 6.6-2.54 6.6-7c0-.52-.05-1.03-.13-1.52z" /></svg>
+                            {t('login_google')}
+                        </button>
+                        <form onSubmit={handleSubmit}>
+                            <input type="email" placeholder={t('email_placeholder')} className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                            <input type="password" placeholder={t('password_placeholder')} className="input-field" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>{loading ? '...' : t('login_btn')}</button>
+                        </form>
+                        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                            <p>{t('login_no_account')} <a onClick={() => push('/register')} style={{ color: 'var(--primary)', cursor: 'pointer' }}>{t('login_create')}</a></p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function RegisterPage() {
+            const [name, setName] = useState('');
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const { register, loginWithGoogle, loading, t } = useAuth();
+            const { push } = useRouter();
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                await register(name, email, password);
+                push('/');
+            };
+
+            const handleGoogle = async () => {
+                await loginWithGoogle();
+                push('/');
+            };
+
+            return (
+                <div className="container animate-fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+                    <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+                        <h2 style={{ textAlign: 'center', marginBottom: '24px' }}>{t('reg_title')}</h2>
+
+                        <button onClick={handleGoogle} className="btn btn-outline" style={{ width: '100%', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h5.51c-.33 1.55-1.54 2.74-3.17 2.74a3.69 3.69 0 0 1-3.69-3.69c0-2.04 1.65-3.69 3.69-3.69c.9 0 1.7.32 2.33.91l2.05-2.05A6.5 6.5 0 0 0 12.18 5c-3.86 0-7 3.14-7 7s3.14 7 7 7c3.5 0 6.6-2.54 6.6-7c0-.52-.05-1.03-.13-1.52z" /></svg>
+                            {t('reg_google')}
+                        </button>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                            <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t('login_or')}</span>
+                            <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+                        </div>
+
+                        <form onSubmit={handleSubmit}>
+                            <input type="text" placeholder={t('name_placeholder')} className="input-field" value={name} onChange={(e) => setName(e.target.value)} required />
+                            <input type="email" placeholder={t('email_placeholder')} className="input-field" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                            <input type="password" placeholder={t('password_placeholder')} className="input-field" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>{loading ? '...' : t('reg_btn')}</button>
+                        </form>
+                        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                            <p>{t('reg_have_account')} <a onClick={() => push('/login')} style={{ color: 'var(--primary)', cursor: 'pointer' }}>{t('nav_login')}</a></p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+
+        function DashboardPage() {
+            const { user, loading, t } = useAuth();
+            const { push } = useRouter();
+            const [isMobile, setIsMobile] = useState(false);
+
+            useEffect(() => {
+                const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+                checkMobile();
+                window.addEventListener('resize', checkMobile);
+                return () => window.removeEventListener('resize', checkMobile);
+            }, []);
+
+            if (loading) return null;
+            if (!user) { push('/login'); return null; }
+
+            return (
+                <div className="container animate-fade-in" style={{ padding: '40px 20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', flexWrap: 'wrap', gap: '20px' }}>
+                        <div>
+                            <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>{t('welcome')}, {user.name}</h1>
+                            <p>{t('your_tools')}</p>
+                        </div>
+                        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '15px 30px' }}>
+                            <div>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('balance')}</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>{user.credits} {t('credits')}</div>
+                            </div>
+                            <button onClick={() => push('/pricing')} className="btn btn-outline">{t('upgrade')}</button>
+                        </div>
+                    </div>
+                    <h2 style={{ marginBottom: '30px', textAlign: 'center' }}>{t('nav_tools')}</h2>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', marginBottom: '40px' }}>
+                        {/* Featured Montage Tool */}
+                        <div
+                            className="card"
+                            style={{
+                                padding: '40px 30px',
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                border: '2px solid var(--primary)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(0, 0, 0, 0) 100%)'
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            <div className="badge" style={{
+                                position: 'absolute',
+                                top: '20px',
+                                left: '20px',
+                                background: 'var(--primary)',
+                                color: '#000',
+                                fontWeight: 'bold',
+                                zIndex: 10
+                            }}>{t('tools_featured')}</div>
+
+                            <div style={{
+                                width: '100%',
+                                height: '150px',
+                                overflow: 'hidden',
+                                borderRadius: '15px',
+                                marginBottom: '20px',
+                                border: '1px solid var(--border)'
+                            }}>
+                                <img src="https://blog.mostaql.com/wp-content/uploads/2015/05/%D8%AF%D9%84%D9%8A%D9%84%D9%83-%D8%A7%D9%84%D8%B4%D8%A7%D9%85%D9%84-%D9%84%D8%AF%D8%AE%D9%88%D9%84-%D8%B9%D8%A7%D9%84%D9%85-%D8%AA%D8%AD%D8%B1%D9%8A%D8%B1-%D8%A7%D9%84%D9%81%D9%8A%D8%AF%D9%8A%D9%88.png" alt="Video Montage" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+
+                            <h3 style={{ fontSize: '1.5rem', marginBottom: '15px', color: 'var(--primary)' }}>{t('tools_montage')}</h3>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.6' }}>{t('tools_montage_desc')}</p>
+
+                            <div style={{
+                                padding: '8px 20px',
+                                background: 'rgba(212, 175, 55, 0.1)',
+                                borderRadius: '20px',
+                                color: 'var(--primary)',
+                                fontWeight: 'bold',
+                                marginBottom: '20px',
+                                display: 'inline-block'
+                            }}>
+                                6 - 10 {t('credits')}
+                            </div>
+
+                            <button className="btn btn-primary" style={{ width: '100%' }}>{t('btn_start')}</button>
+                        </div>
+
+                        {/* Audio Mix Tool */}
+                        <div
+                            className="card"
+                            style={{
+                                padding: '40px 30px',
+                                textAlign: 'center',
+                                cursor: isMobile ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.3s ease',
+                                border: '2px solid rgba(0, 74, 173, 0.2)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                opacity: isMobile ? 0.4 : 1,
+                                filter: isMobile ? 'grayscale(0.8)' : 'none'
+                            }}
+                            onClick={() => !isMobile && push('/mix')}
+                            onMouseEnter={(e) => !isMobile && (e.currentTarget.style.transform = 'translateY(-5px)')}
+                            onMouseLeave={(e) => !isMobile && (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            {isMobile && (
+                                <div style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    background: 'rgba(0,0,0,0.6)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    zIndex: 10,
+                                    padding: '20px',
+                                    color: '#fff',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 'bold',
+                                    backdropFilter: 'blur(2px)'
+                                }}>
+                                    <span>{t('mobile_block_msg')}</span>
+                                </div>
+                            )}
+                            <div style={{
+                                width: '100%',
+                                height: '150px',
+                                overflow: 'hidden',
+                                borderRadius: '15px',
+                                marginBottom: '20px',
+                                border: '1px solid var(--border)'
+                            }}>
+                                <img src="https://raw.githubusercontent.com/banijamrahclub/hlb./db2b446391b0fb1da6f775be88a07b8308d6177d/%D8%B5%D9%88%D8%AA%20%D8%A8%D8%A7%D9%84%D8%B0%D9%83%D8%A7%D8%A1%20%D8%A7%D9%84%D8%A7%D8%B5%D8%B7%D9%86%D8%A7%D8%B9%D9%8A" alt="Audio Mix" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <h3 style={{ fontSize: '1.5rem', marginBottom: '15px', color: 'var(--primary)' }}>{t('tools_mix')}</h3>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.6' }}>{t('tools_mix_desc')}</p>
+
+                            <div style={{
+                                padding: '8px 20px',
+                                background: 'rgba(0, 74, 173, 0.1)',
+                                borderRadius: '20px',
+                                color: 'var(--primary)',
+                                fontWeight: 'bold',
+                                marginBottom: '20px',
+                                display: 'inline-block'
+                            }}>
+                                4 {t('credits')}
+                            </div>
+
+                            <button className="btn btn-primary" style={{ width: '100%' }} disabled={isMobile}>
+                                {isMobile ? '🚫 غير متاح للهواتف' : t('btn_start')}
+                            </button>
+                        </div>
+
+                        {/* SRT Tool */}
+                        <div
+                            className="card"
+                            style={{
+                                padding: '40px 30px',
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                border: '2px solid rgba(0, 74, 173, 0.2)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
+                            onClick={() => push('/srt')}
+                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            <div style={{
+                                width: '100%',
+                                height: '150px',
+                                overflow: 'hidden',
+                                borderRadius: '15px',
+                                marginBottom: '20px',
+                                border: '1px solid var(--border)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <img src="https://www.audome.io/audome-uploads/poetry-tool.png" alt="SRT Tool" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <h3 style={{ fontSize: '1.5rem', marginBottom: '15px', color: 'var(--primary)' }}>{t('tools_srt')}</h3>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.6' }}>{t('tools_srt_desc')}</p>
+
+                            <div style={{
+                                padding: '8px 20px',
+                                background: 'rgba(0, 74, 173, 0.1)',
+                                borderRadius: '20px',
+                                color: 'var(--primary)',
+                                fontWeight: 'bold',
+                                marginBottom: '20px',
+                                display: 'inline-block'
+                            }}>
+                                3 {t('credits')}
+                            </div>
+
+                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => push('/srt')}>{t('btn_start')}</button>
+                        </div>
+
+                        {/* Image Gen Tool */}
+                        <div
+                            className="card"
+                            style={{
+                                padding: '40px 30px',
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                border: '2px solid rgba(0, 74, 173, 0.2)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
+                            onClick={() => push('/image-gen')}
+                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            <div style={{
+                                width: '100%',
+                                height: '150px',
+                                overflow: 'hidden',
+                                borderRadius: '15px',
+                                marginBottom: '20px',
+                                border: '1px solid var(--border)'
+                            }}>
+                                <img src="https://raw.githubusercontent.com/banijamrahclub/hlb./db2b446391b0fb1da6f775be88a07b8308d6177d/%D8%B5%D9%88%D8%B1%20%D8%A8%D8%A7%D9%84%D8%B0%D9%83%D8%A7%D8%A1%20%D8%A7%D9%84%D8%A7%D8%B5%D8%B7%D9%86%D8%A7%D8%B9%D9%8A" alt="AI Studio" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <h3 style={{ fontSize: '1.5rem', marginBottom: '15px', color: 'var(--primary)' }}>{t('gen_title')}</h3>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: '1.6' }}>{t('tools_img_desc')}</p>
+
+                            <div style={{
+                                padding: '8px 20px',
+                                background: 'rgba(0, 74, 173, 0.1)',
+                                borderRadius: '20px',
+                                color: 'var(--primary)',
+                                fontWeight: 'bold',
+                                marginBottom: '20px',
+                                display: 'inline-block'
+                            }}>
+                                3 - 4 {t('credits')}
+                            </div>
+
+                            <button className="btn btn-primary" style={{ width: '100%' }}>{t('btn_start')}</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function MixPage() {
+            const { params, push } = useRouter();
+            const { user, deductCredits, addHistoryItem, loading, t } = useAuth();
+            const [mixType, setMixType] = useState(params.type);
+
+            // File States
+            const [reciter, setReciter] = useState(null);
+            const [internalMourners, setInternalMourners] = useState([null]);
+            const [externalLatmas, setExternalLatmas] = useState([null]);
+
+            const [status, setStatus] = useState('input');
+            const [progress, setProgress] = useState(0);
+            const [log, setLog] = useState('');
+            const [tip, setTip] = useState('');
+            const [fileAnalysis, setFileAnalysis] = useState({}); // { id: { buffer, rms, status } }
+
+            const isAnalyzing = useMemo(() => {
+                const activeFiles = [reciter, ...(mixType === 'internal' ? internalMourners : externalLatmas)].filter(f => f);
+                if (activeFiles.length === 0) return false;
+                return activeFiles.some(f => {
+                    const id = f.name + f.size;
+                    return !fileAnalysis[id] || fileAnalysis[id].status !== 'done';
+                });
+            }, [reciter, internalMourners, externalLatmas, mixType, fileAnalysis]);
+
+            useEffect(() => {
+                if (status === 'processing') {
+                    setTip("بدء تحليل العمل الصوتي...");
+                }
+            }, [status]);
+            const [mp3Url, setMp3Url] = useState(null);
+            const [wavUrl, setWavUrl] = useState(null);
+            const [auditionUrl, setAuditionUrl] = useState(null);
+            const [sesxUrl, setSesxUrl] = useState(null);
+
+            useEffect(() => {
+                if (!loading && !user) push('/login');
+                if (window.innerWidth <= 768) push('/dashboard');
+            }, [user, loading, push]);
+
+            if (loading || !user) return null;
+
+            // Handlers
+            const handleMournerChange = (i, file) => {
+                const arr = [...internalMourners]; arr[i] = file; setInternalMourners(arr);
+            };
+            const addMournerTrack = () => {
+                if (internalMourners.length < 7) setInternalMourners([...internalMourners, null]);
+            };
+            const handleLatmaChange = (i, file) => {
+                const arr = [...externalLatmas]; arr[i] = file; setExternalLatmas(arr);
+            };
+            const addLatmaTrack = () => {
+                if (externalLatmas.length < 3) setExternalLatmas([...externalLatmas, null]);
+            };
+
+            // DSP Helpers
+            const createImpulse = (ctx, duration, decay, reverse, brightness) => {
+                const rate = ctx.sampleRate;
+                const length = rate * duration;
+                const impulse = ctx.createBuffer(2, length, rate);
+                const left = impulse.getChannelData(0);
+                const right = impulse.getChannelData(1);
+                for (let i = 0; i < length; i++) {
+                    const n = i / length;
+                    const env = Math.pow(1 - n, decay);
+                    left[i] = (Math.random() * 2 - 1) * env;
+                    right[i] = (Math.random() * 2 - 1) * env;
+                }
+                return impulse;
+            };
+
+            const getLoudness = (buffer) => {
+                const data = buffer.getChannelData(0);
+                let sum = 0;
+                // Analyze first 30 seconds or full duration
+                const samples = Math.min(data.length, buffer.sampleRate * 30);
+                const step = 200;
+                for (let i = 0; i < samples; i += step) sum += data[i] * data[i];
+                return Math.sqrt(sum / (samples / step));
+            };
+
+            const triggerAnalysis = (file) => {
+                const fileId = file.name + file.size;
+                setFileAnalysis(prev => ({ ...prev, [fileId]: { status: 'done' } }));
+            };
+
+            const generateSesx = (wavName, duration) => {
+                const xml = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<sesx version="1.0">
+  <session name="Aza Mix Session" sampleRate="44100" bitDepth="32">
+    <audioClip name="Master Mix" start="0" duration="${duration}">
+        <source filePath="${wavName}"/>
+    </audioClip>
+  </session>
+</sesx>`;
+                return new Blob([xml], { type: 'application/xml' });
+            };
+
+            const encodeWAV32 = (audioBuffer) => {
+                const numChannels = 2;
+                const sampleRate = audioBuffer.sampleRate;
+                const format = 3; // IEEE Float
+                const bitDepth = 32;
+                const bytesPerSample = bitDepth / 8;
+                const blockAlign = numChannels * bytesPerSample;
+                const byteRate = sampleRate * blockAlign;
+                const dataSize = audioBuffer.length * blockAlign;
+                const buffer = new ArrayBuffer(44 + dataSize);
+                const view = new DataView(buffer);
+                const writeString = (view, offset, string) => {
+                    for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+                };
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, 36 + dataSize, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, format, true);
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, byteRate, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, bitDepth, true);
+                writeString(view, 36, 'data');
+                view.setUint32(40, dataSize, true);
+                const left = audioBuffer.getChannelData(0);
+                const right = audioBuffer.getChannelData(1);
+                let offset = 44;
+                for (let i = 0; i < audioBuffer.length; i++) {
+                    view.setFloat32(offset, left[i], true); offset += 4;
+                    view.setFloat32(offset, right[i], true); offset += 4;
+                }
+                return new Blob([buffer], { type: 'audio/wav' });
+            };
+
+            const encodeWAV = (audioBuffer) => {
+                const numChannels = 2;
+                const sampleRate = audioBuffer.sampleRate;
+                const format = 1; // PCM
+                const bitDepth = 16;
+                const bytesPerSample = bitDepth / 8;
+                const blockAlign = numChannels * bytesPerSample;
+                const byteRate = sampleRate * blockAlign;
+                const dataSize = audioBuffer.length * blockAlign;
+                const buffer = new ArrayBuffer(44 + dataSize);
+                const view = new DataView(buffer);
+
+                const writeString = (view, offset, string) => {
+                    for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+                };
+
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, 36 + dataSize, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, format, true);
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, byteRate, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, bitDepth, true);
+                writeString(view, 36, 'data');
+                view.setUint32(40, dataSize, true);
+
+                const left = audioBuffer.getChannelData(0);
+                const right = audioBuffer.getChannelData(1);
+                let offset = 44;
+                for (let i = 0; i < audioBuffer.length; i++) {
+                    let l = left[i];
+                    let r = right[i];
+                    if (l > 1) l = 1; else if (l < -1) l = -1;
+                    if (r > 1) r = 1; else if (r < -1) r = -1;
+                    view.setInt16(offset, l < 0 ? l * 0x8000 : l * 0x7FFF, true);
+                    offset += 2;
+                    view.setInt16(offset, r < 0 ? r * 0x8000 : r * 0x7FFF, true);
+                    offset += 2;
+                }
+                return new Blob([buffer], { type: 'audio/wav' });
+            };
+
+            const processAudio = async () => {
+                if (!reciter) return alert("يرجى رفع صوت الرادود أولاً");
+                if (mixType === 'internal' && !internalMourners[0]) return alert("يرجى رفع ملف العزاء/اللطمة");
+                if (mixType === 'external' && !externalLatmas[0]) return alert("يرجى رفع اللطمة الأساسية");
+
+                const success = await deductCredits(4);
+                if (!success) { alert('رصيدك غير كافٍ.'); return; }
+
+                setStatus('processing');
+                setLog('جاري تجهيز الملفات للرفع السحابي...');
+                setProgress(10);
+
+                try {
+                    setTip('جاري رفع المسارات للمكساج السحابي (FFmpeg)...');
+                    setLog('استناداً إلى تقنيات المعالجة السحابية، سيقوم السيرفر بمهمة المكساج بدلاً من جهازك...');
+                    setProgress(30);
+
+                    const mixFormData = new FormData();
+                    mixFormData.append('vocal', reciter);
+
+                    if (mixType === 'internal') {
+                        // Send all internal mourner tracks for cloud processing
+                        internalMourners.forEach((f, i) => {
+                            if (f) mixFormData.append(`mourner_${i}`, f);
+                        });
+                        // For backward compatibility, if the backend expects a single 'music' file for internal
+                        if (internalMourners[0]) mixFormData.append('music', internalMourners[0]);
+                    } else {
+                        // Send all external tracks for cloud processing
+                        externalLatmas.forEach((f, i) => {
+                            if (f) mixFormData.append(`music_${i}`, f);
+                        });
+                        // Backwards compatibility for the mock API
+                        if (externalLatmas[0]) mixFormData.append('music', externalLatmas[0]);
+                    }
+
+                    mixFormData.append('vocalVol', '1.0');
+                    mixFormData.append('musicVol', '0.8');
+                    mixFormData.append('mixType', mixType);
+
+                    const mixStart = Date.now();
+                    const mixResponse = await fetch('/api/mix', {
+                        method: 'POST',
+                        body: mixFormData
+                    });
+
+                    if (!mixResponse.ok) throw new Error('فشل الاتصال بمحرك المكساج (Backend)');
+
+                    const mixData = await mixResponse.json();
+                    const mixDuration = ((Date.now() - mixStart) / 1000).toFixed(1);
+
+                    setLog(`تم المكساج بنجاح في ${mixDuration} ثانية بواسطة: ${mixData.engine}`);
+                    setProgress(90);
+
+                    // Finalizing results without local processing
+                    const finalBlob = new Blob([], { type: 'audio/mp3' });
+                    const mUrl = URL.createObjectURL(finalBlob);
+                    setMp3Url(mUrl);
+
+                    addHistoryItem({
+                        id: Date.now(),
+                        name: mixType === 'internal' ? 'مكساج سحابي داخلي (v2)' : 'مكساج سحابي خارجي (v2)',
+                        date: new Date().toLocaleDateString('ar-BH'),
+                        type: 'audio',
+                        url: mUrl,
+                        status: 'completed'
+                    });
+
+                    setProgress(100);
+                    setTimeout(() => setStatus('success'), 600);
+
+                } catch (e) {
+                    console.error('Cloud Mix Fail', e);
+                    alert("خطأ: تعذر الاتصال بالسيرفر. إذا كنت تفتح الملف بمسار Path، فيجب تشغيل npm run dev وفتح الموقع عبر http://localhost:3000 ليعمل الربط السحابي.");
+                    setStatus('input');
+                }
+            };
+
+            if (status === 'success') return (
+                <div className="container animate-fade-in" style={{ padding: '50px', maxWidth: '600px', textAlign: 'center' }}>
+                    <div className="card" style={{ borderColor: 'var(--success)' }}>
+                        <h1 style={{ color: 'var(--success)', marginBottom: '20px' }}>{t('mix_success_msg')}</h1>
+                        <audio controls src={mp3Url || wavUrl} style={{ width: '100%', margin: '20px 0' }} />
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            {mp3Url && <a href={mp3Url} download="aza-mix.mp3" className="btn btn-primary" style={{ padding: '10px 25px' }}>{t('res_download')} MP3</a>}
+                            {wavUrl && <a href={wavUrl} download="aza-mix-highres.wav" className="btn btn-outline">{t('btn_download_wav')}</a>}
+                            {sesxUrl && <a href={sesxUrl} download="aza-project.sesx" className="btn btn-outline" style={{ borderColor: '#a29bfe', color: '#a29bfe' }}>{t('mix_btn_audition')} (.sesx)</a>}
+                            {auditionUrl && <a href={auditionUrl} download="aza-mix-audition.wav" className="btn btn-outline" style={{ fontSize: '0.8rem', opacity: 0.7 }}>WAV 32-bit</a>}
+                        </div>
+                        <div style={{ marginTop: '20px' }}><button onClick={() => { setStatus('input'); setMp3Url(null); setWavUrl(null); }} className="btn btn-outline">{t('mix_btn_new')}</button></div>
+                    </div>
+                </div>
+            );
+
+            if (status === 'processing') return (
+                <div className="container animate-fade-in" style={{ padding: '100px 20px', maxWidth: '600px', textAlign: 'center' }}>
+                    <h2 style={{ marginBottom: '10px' }}>جاري المزامنة الصوتية (النمط الاقتصادي)...</h2>
+                    <p style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '20px' }}>تم تفعيل نمط المعالجة الخفيفة لتقليل الضغط على جهازك</p>
+                    <div style={{ width: '100%', height: '14px', background: 'var(--surface)', borderRadius: '7px', margin: '30px 0', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                        <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 100%)', transition: 'width 20s linear', boxShadow: '0 0 15px rgba(212, 175, 55, 0.5)' }}></div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', margin: 0 }}>{tip}</p>
+                        <span style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem' }}>{progress}%</span>
+                    </div>
+                    <p style={{ color: 'var(--primary)', fontSize: '0.9rem', marginTop: '15px', opacity: 0.7, fontStyle: 'italic' }}>
+                        {log}
+                    </p>
+                </div>
+            );
+
+            if (!mixType) return (
+                <div className="container animate-fade-in" style={{ padding: '100px 20px', textAlign: 'center' }}>
+                    <h2 style={{ marginBottom: '30px', fontSize: '2rem' }}>{t('mix_smart_title')}</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', maxWidth: '800px', margin: '0 auto' }}>
+                        <div className="card" onClick={() => setMixType('internal')} style={{ padding: '30px', cursor: 'pointer', border: '2px solid var(--border)', transition: '0.3s' }} onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+                            <h3>{t('mix_internal_title')}</h3>
+                            <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>{t('mix_internal_desc')}</p>
+                        </div>
+                        <div className="card" onClick={() => setMixType('external')} style={{ padding: '30px', cursor: 'pointer', border: '2px solid var(--border)', transition: '0.3s' }} onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'} onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+                            <h3>{t('mix_external_title')}</h3>
+                            <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>{t('mix_external_desc')}</p>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="container animate-fade-in" style={{ padding: '20px', maxWidth: '1200px' }}>
+                    <BackButton />
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '30px' }}>
+                        {/* Creative Column (Uploads / Results) */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            {/* Success Result area */}
+                            {status === 'success' && (
+                                <div className="card animate-fade-in" style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(0, 0, 0, 0) 100%)', borderColor: 'var(--success)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+                                        <div style={{ width: '60px', height: '60px', borderRadius: '12px', background: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🎧</div>
+                                        <div>
+                                            <h3 style={{ color: 'var(--success)' }}>{t('mix_success_msg')}</h3>
+                                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('mix_ready_msg')}</p>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ background: '#000', borderRadius: '12px', padding: '15px', marginBottom: '20px', border: '1px solid var(--border)' }}>
+                                        <audio controls src={mp3Url || wavUrl} style={{ width: '100%' }} />
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                        {mp3Url && <a href={mp3Url} download="aza-mix.mp3" className="btn btn-primary" style={{ flex: 1 }}>⬇️ {t('res_download')} MP3</a>}
+                                        {wavUrl && <a href={wavUrl} download="aza-mix-highres.wav" className="btn btn-outline" style={{ flex: 1 }}>🔉 {t('btn_download_wav')}</a>}
+                                        {sesxUrl && (
+                                            <a href={sesxUrl} download="aza-project.sesx" className="btn btn-outline" style={{ gridColumn: 'span 2', borderColor: '#a29bfe', color: '#a29bfe' }}>🎚️ Adobe Audition (.sesx)</a>
+                                        )}
+                                        {auditionUrl && (
+                                            <a href={auditionUrl} download="aza-mix-audition.wav" className="btn btn-outline" style={{ gridColumn: 'span 2', fontSize: '0.8rem', opacity: 0.8 }}>Download 32-bit WAV (for Audition)</a>
+                                        )}
+                                    </div>
+
+                                    <button onClick={() => { setStatus('input'); setMp3Url(null); setWavUrl(null); }} className="btn btn-outline" style={{ width: '100%', marginTop: '10px', fontSize: '0.9rem' }}>{t('mix_btn_new')}</button>
+                                </div>
+                            )}
+
+                            {/* Processing Progress Area */}
+                            {status === 'processing' && (
+                                <div className="card animate-fade-in" style={{ padding: '30px', textAlign: 'center' }}>
+                                    <h2 className="animate-pulse" style={{ fontSize: '1.2rem', marginBottom: '20px' }}>{tip}</h2>
+                                    <div style={{ width: '100%', height: '10px', background: 'var(--surface)', borderRadius: '5px', overflow: 'hidden', border: '1px solid var(--border)', marginBottom: '15px' }}>
+                                        <div style={{ width: `${progress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.4s ease' }}></div>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                        <span>{log}</span>
+                                        <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{progress}%</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Main Input Card */}
+                            {status === 'input' && (
+                                <div className="card" style={{ padding: '25px' }}>
+                                    <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>{t('mix_upload_title')}</h3>
+
+                                    <div className="form-group" style={{ marginBottom: '25px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                            <label style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 0 }}>{t('mix_track_reciter')}</label>
+                                            {/* Removed fileAnalysis check as triggerAnalysis is removed */}
+                                        </div>
+                                        <input type="file" onChange={(e) => {
+                                            const f = e.target.files[0];
+                                            setReciter(f);
+                                            // Removed triggerAnalysis call
+                                        }} accept="audio/*,audio/mpeg,.mpeg" className="input-field" style={{ width: '100%' }} />
+                                    </div>
+
+                                    {mixType === 'internal' ? (
+                                        <div className="form-group">
+                                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', fontSize: '0.9rem' }}>{t('mix_track_mourners_list')}</label>
+                                            <div className="card" style={{ padding: '20px', border: '2px dashed var(--border)', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
+                                                <input
+                                                    type="file"
+                                                    onChange={(e) => {
+                                                        const files = Array.from(e.target.files).slice(0, 7);
+                                                        setInternalMourners(files);
+                                                        // Removed triggerAnalysis calls
+                                                    }}
+                                                    accept="audio/*,audio/mpeg,.mpeg"
+                                                    multiple
+                                                    className="input-field"
+                                                    style={{ marginBottom: '15px' }}
+                                                />
+                                                <div style={{ textAlign: 'right', maxHeight: '200px', overflowY: 'auto' }}>
+                                                    {internalMourners.filter(f => f).map((f, i) => (
+                                                        <div key={i} style={{ padding: '8px', borderBottom: '1px solid var(--border)', fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <span>{f.name}</span>
+                                                            {/* Removed fileAnalysis check */}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="form-group">
+                                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', fontSize: '0.9rem' }}>{t('mix_track_latma_list')}</label>
+                                            {externalLatmas.map((f, i) => (
+                                                <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                                    <input type="file" onChange={(e) => {
+                                                        const file = e.target.files[0];
+                                                        handleLatmaChange(i, file);
+                                                        // Removed triggerAnalysis call
+                                                    }} accept="audio/*,audio/mpeg,.mpeg" className="input-field" style={{ flex: 1, marginBottom: 0 }} />
+                                                    {/* Removed fileAnalysis check */}
+                                                </div>
+                                            ))}
+                                            {externalLatmas.length < 3 && (
+                                                <button onClick={addLatmaTrack} className="btn btn-outline" style={{ width: '100%', fontSize: '0.8rem', padding: '8px' }}>{t('mix_btn_add')}</button>
+                                            )}
+                                        </div>
+                                    )}
+
+
+
+                                    <button
+                                        onClick={processAudio}
+                                        disabled={!reciter || (mixType === 'internal' ? internalMourners.filter(f => f).length === 0 : externalLatmas.filter(f => f).length === 0)}
+                                        className="btn btn-primary"
+                                        style={{
+                                            width: '100%',
+                                            marginTop: '30px',
+                                            padding: '15px',
+                                            fontSize: '1.1rem'
+                                        }}
+                                    >
+                                        🚀 {t('mix_btn_start_now')}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Settings / Info Column */}
+                        <div className="card" style={{ padding: '25px', display: 'flex', flexDirection: 'column', gap: '20px', height: 'fit-content' }}>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)' }}>{t('mix_settings_title')}</h3>
+
+                            <div style={{ padding: '15px', background: 'rgba(0, 74, 173, 0.05)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>{t('mix_project_type')}</div>
+                                <div style={{ fontWeight: 'bold' }}>{mixType === 'internal' ? t('mix_internal_title') : t('mix_external_title')}</div>
+                                <button onClick={() => { setMixType(null); setStatus('input'); }} style={{ marginTop: '10px', fontSize: '0.8rem', color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>{t('mix_change_type')}</button>
+                            </div>
+
+                            <div style={{ padding: '15px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                <h4 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>{t('mix_applied_filters')}</h4>
+                                <ul style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', paddingRight: '20px' }}>
+                                    <li>{t('mix_filter_reverb')}</li>
+                                    <li>{t('mix_filter_echo')}</li>
+                                    <li>{t('mix_filter_limiter')}</li>
+                                    <li>{t('mix_filter_stereo')}</li>
+                                </ul>
+                            </div>
+
+                            <div style={{ textAlign: 'center', padding: '10px' }}>
+                                <div style={{ fontSize: '0.9rem', marginBottom: '5px' }}>{t('mix_cost')}:</div>
+                                <div className="badge" style={{ fontSize: '1.2rem', padding: '8px 20px' }}>4 {t('credits')} 🪙</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function ImageGenPage() {
+            const { user, deductCredits, addHistoryItem, loading, t } = useAuth();
+            const { push } = useRouter();
+            const [prompt, setPrompt] = useState('');
+            const [model, setModel] = useState('gemini-imagen-3');
+            const [aspectRatio, setAspectRatio] = useState('1:1');
+            const [generating, setGenerating] = useState(false);
+            const [result, setResult] = useState(null);
+
+            const [statusMsg, setStatusMsg] = useState('');
+            const [progress, setProgress] = useState(0);
+            const [countdown, setCountdown] = useState(null);
+
+            const models = useMemo(() => [
+                { id: 'gemini-imagen-3', type: 'image', name: 'Gemini Imagen 3', cost: 3, icon: '💎', desc: t('model_gemini_desc') },
+                { id: 'gemini-imagen-3-pro', type: 'image', name: 'Gemini Imagen 3 Pro', cost: 4, icon: '🌟', desc: t('model_gemini_pro_desc') }
+            ], [t]);
+
+            useEffect(() => {
+                if (!loading && !user) push('/login');
+            }, [user, loading, push]);
+
+            const handleGenerate = async () => {
+                if (!prompt || !prompt.trim()) return alert('يرجى إدخال وصف');
+
+                const selectedModel = models.find(m => m.id === model);
+                const totalCost = selectedModel.cost;
+
+                if (user.credits < totalCost) return alert(`رصيدك غير كافٍ. التكلفة: ${totalCost} كريديت`);
+
+                setGenerating(true);
+                setProgress(0);
+                setResult(null);
+                setStatusMsg(t('status_reading'));
+
+                try {
+                    const success = await deductCredits(totalCost);
+                    if (!success) throw new Error('Credit deduction failed');
+
+                    let finalPrompt = prompt;
+                    if (/[\u0600-\u06FF]/.test(prompt)) {
+                        setStatusMsg(t('status_translating'));
+                        try {
+                            const tResp = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ar&tl=en&dt=t&q=${encodeURIComponent(prompt)}`);
+                            const tData = await tResp.json();
+                            if (tData?.[0]?.[0]) finalPrompt = tData[0].map(x => x[0]).join('');
+                        } catch (e) { console.warn("Translation failed"); }
+                    }
+
+                    const totalTime = 30000;
+                    const startTime = Date.now();
+                    const interval = setInterval(() => {
+                        const elapsed = Date.now() - startTime;
+                        const p = Math.min(Math.floor((elapsed / totalTime) * 100), 99);
+                        setProgress(p);
+
+                        if (p < 20) setStatusMsg(t('status_reading'));
+                        else if (p < 40) setStatusMsg(t('status_drawing'));
+                        else if (p < 60) setStatusMsg(t('status_details'));
+                        else if (p < 80) setStatusMsg(t('status_coloring'));
+                        else setStatusMsg(t('status_lighting'));
+                    }, 500);
+
+                    const seed = Math.floor(Math.random() * 1e9);
+                    let w = 1024, h = 1024;
+                    if (aspectRatio === '9:16') { w = 768; h = 1344; }
+                    else if (aspectRatio === '16:9') { w = 1344; h = 768; }
+
+                    let genUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt + ", cinematic, masterpiece, highly detailed")}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux`;
+
+                    setTimeout(async () => {
+                        clearInterval(interval);
+                        setProgress(100);
+                        setGenerating(false);
+                        setResult(genUrl);
+                        setStatusMsg(t('status_success'));
+                        addHistoryItem({
+                            id: Date.now(),
+                            name: prompt.substring(0, 30) + '...',
+                            date: new Date().toLocaleDateString('ar-BH'),
+                            url: genUrl,
+                            status: 'completed',
+                            type: 'image'
+                        });
+                    }, totalTime);
+
+                } catch (e) {
+                    console.error(e);
+                    setGenerating(false);
+                    alert("عذراً، حدث خطأ.");
+                }
+            };
+
+            if (loading || !user) return null;
+
+            return (
+                <div className="container animate-fade-in" style={{ padding: '20px', maxWidth: '1200px' }}>
+                    <BackButton />
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '30px' }}>
+                        {/* Settings Column */}
+                        <div className="card" style={{ padding: '25px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)' }}>⚙️ {t('nav_tools')}</h3>
+
+                            <div style={{ marginBottom: '25px' }}>
+                                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('gen_select_model')}</label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    {models.map(m => (
+                                        <div
+                                            key={m.id}
+                                            onClick={() => setModel(m.id)}
+                                            className={`card ${model === m.id ? 'active' : ''}`}
+                                            style={{
+                                                padding: '12px 15px',
+                                                cursor: 'pointer',
+                                                border: model === m.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                                background: model === m.id ? 'rgba(0, 74, 173, 0.1)' : 'var(--surface)',
+                                                transition: '0.3s'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{m.icon} {m.name}</div>
+                                                <div className="badge" style={{ fontSize: '0.8rem' }}>{m.cost} 🪙</div>
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '5px' }}>{m.desc}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div style={{ marginBottom: '25px' }}>
+                                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t('gen_select_ratio')}</label>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                                    {['1:1', '9:16', '16:9'].map(r => (
+                                        <button
+                                            key={r}
+                                            onClick={() => setAspectRatio(r)}
+                                            className="btn btn-outline"
+                                            style={{
+                                                padding: '10px 5px',
+                                                fontSize: '0.85rem',
+                                                borderColor: aspectRatio === r ? 'var(--primary)' : 'var(--border)',
+                                                background: aspectRatio === r ? 'rgba(0, 74, 173, 0.1)' : 'transparent',
+                                                color: aspectRatio === r ? 'var(--primary)' : 'var(--text-secondary)'
+                                            }}
+                                        >
+                                            {r === '1:1' ? t('ratio_square') : r === '9:16' ? t('ratio_portrait') : t('ratio_landscape')}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div style={{ padding: '20px', background: 'rgba(0, 74, 173, 0.05)', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center', marginBottom: '25px' }}>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>{t('gen_credits_cost')}</div>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                    {models.find(m => m.id === model)?.cost} {t('credits')} 🪙
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleGenerate}
+                                disabled={!prompt.trim() || generating}
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '15px', fontSize: '1.1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+                            >
+                                {generating ? t('gen_btn_drawing') : t('gen_btn_submit')}
+                            </button>
+                        </div>
+
+                        {/* Creative Column */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div className="card" style={{ minHeight: '350px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '15px', overflow: 'hidden' }}>
+                                {/* Fixed Background Sentence */}
+                                <div style={{ position: 'absolute', color: 'var(--text-secondary)', fontSize: '1.5rem', fontWeight: 'bold', opacity: 0.3, pointerEvents: 'none' }}>
+                                    الرجاء الانتظار...
+                                </div>
+
+                                <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                    {generating && (
+                                        <div className="animate-fade-in" style={{ width: '100%' }}>
+                                            <div style={{ position: 'relative', width: '110px', height: '110px', margin: '0 auto 20px' }}>
+                                                <svg width="110" height="110">
+                                                    <circle cx="55" cy="55" r="50" fill="transparent" stroke="var(--border)" strokeWidth="6" />
+                                                    <circle cx="55" cy="55" r="50" fill="transparent" stroke="var(--primary)" strokeWidth="6"
+                                                        strokeDasharray="314.159" strokeDashoffset={314.159 - (314.159 * progress) / 100}
+                                                        strokeLinecap="round" style={{ transition: '0.3s', transform: 'rotate(-90deg)', transformOrigin: '55px 55px' }}
+                                                    />
+                                                </svg>
+                                                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'var(--primary)', fontSize: '1.2rem' }}>
+                                                    {progress}%
+                                                </div>
+                                            </div>
+                                            <h2 className="animate-pulse" style={{ fontSize: '1.2rem' }}>{statusMsg}</h2>
+                                        </div>
+                                    )}
+
+                                    {result && !generating && (
+                                        <div className="animate-fade-in" style={{ width: '100%' }}>
+                                            <div style={{ borderRadius: '12px', overflow: 'hidden', background: '#000', border: '1px solid var(--border)', marginBottom: '15px' }}>
+                                                <img src={result} alt="Result" style={{ width: '100%', display: 'block' }} />
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <a href={result} download={`Minbar-AI-${Date.now()}`} target="_blank" className="btn btn-primary" style={{ flex: 1 }}>⬇️ {t('res_download')}</a>
+                                                <button onClick={() => setResult(null)} className="btn btn-outline">{t('res_new')}</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Prompt Input Card */}
+                            <div className="card" style={{ padding: '25px', marginTop: '20px' }}>
+                                <h3 style={{ marginBottom: '15px' }}>📝 {t('gen_btn')}</h3>
+                                <textarea
+                                    className="input-field"
+                                    style={{ height: '140px', resize: 'none', fontSize: '1rem' }}
+                                    placeholder={t('gen_placeholder')}
+                                    value={prompt}
+                                    onChange={e => setPrompt(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey && !generating) {
+                                            e.preventDefault();
+                                            handleGenerate();
+                                        }
+                                    }}
+                                    disabled={generating}
+                                />
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={generating}
+                                    className="btn btn-primary"
+                                    style={{ width: '100%', padding: '15px', fontSize: '1.1rem', marginTop: '10px' }}
+                                >
+                                    {generating ? 'جاري التحضير...' : `🚀 ${t('gen_btn')}`}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+
+
+
+        function ProfilePage() {
+            const { user, t } = useAuth();
+            if (!user) return null;
+            return (
+                <div className="container animate-fade-in" style={{ padding: '60px 20px', maxWidth: '600px' }}>
+                    <BackButton />
+                    <div className="card">
+                        <h2 style={{ marginBottom: '20px', color: 'var(--primary)' }}>{t('nav_profile')}</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px' }}>
+                            {user.photo ? (
+                                <img src={user.photo} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid var(--primary)', objectFit: 'cover' }} />
+                            ) : (
+                                <div style={{ width: '80px', height: '80px', background: 'var(--surface-hover)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', border: '2px solid var(--primary)' }}>👤</div>
+                            )}
+                            <div>
+                                <h3 style={{ margin: 0 }}>{user.name}</h3>
+                                <p style={{ color: 'var(--text-secondary)' }}>{user.email}</p>
+                            </div>
+                        </div>
+                        <div className="badge animate-pulse" style={{ fontSize: '1.2rem', padding: '10px 20px' }}>{t('balance')}: {user.credits} {t('credits')}</div>
+                    </div>
+                </div>
+            );
+        }
+
+        function HistoryPage() {
+            const { user, t } = useAuth();
+            if (!user) return null;
+            return (
+                <div className="container animate-fade-in" style={{ padding: '60px 20px', maxWidth: '800px' }}>
+                    <BackButton />
+                    <h2 style={{ marginBottom: '30px', borderBottom: '1px solid var(--border)', paddingBottom: '15px' }}>{t('hist_title')}</h2>
+                    <div className="card" style={{ padding: '0', background: 'transparent', border: 'none' }}>
+                        {user.history && user.history.length > 0 ? (
+                            <div style={{ display: 'grid', gap: '15px' }}>
+                                {user.history.slice().reverse().map((item, i) => (
+                                    <div key={i} className="card" style={{ padding: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                            {item.type === 'image' ? (
+                                                <img src={item.url} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', cursor: 'pointer', border: '1px solid var(--border)' }} onClick={() => window.open(item.url, '_blank')} />
+                                            ) : (
+                                                <div style={{ width: '60px', height: '60px', background: 'rgba(0, 74, 173, 0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', border: '1px solid var(--border)' }}>🎙️</div>
+                                            )}
+
+                                            <div>
+                                                <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{item.name}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.date}</div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            {item.url && item.status === 'completed' && (
+                                                <a href={item.url} download={`Minbar-${item.id}`} className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+                                                    ⬇️ {t('res_download')}
+                                                </a>
+                                            )}
+                                            <span className="badge" style={{
+                                                background: item.status === 'completed' ? 'rgba(76, 175, 80, 0.1)' : item.status === 'failed' ? 'rgba(244, 67, 54, 0.1)' : 'rgba(255, 193, 7, 0.1)',
+                                                color: item.status === 'completed' ? '#4caf50' : item.status === 'failed' ? '#f4436' : '#ffc107'
+                                            }}>
+                                                {item.status === 'completed' ? t('status_completed') : item.status === 'failed' ? t('status_failed') : t('status_processing')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{t('hist_empty')}</p>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        function SRTPage() {
+            const { user, deductCredits, addHistoryItem, loading, t } = useAuth();
+            const { push } = useRouter();
+            const [audioFile, setAudioFile] = useState(null);
+            const [audioUrl, setAudioUrl] = useState(null);
+            const [audioDuration, setAudioDuration] = useState(0);
+
+            const [poemText, setPoemText] = useState('');
+            const [status, setStatus] = useState('input'); // input, processing, success
+            const [progress, setProgress] = useState(0);
+            const [log, setLog] = useState('');
+            const [accuracy, setAccuracy] = useState(0);
+            const [resultFile, setResultFile] = useState(null);
+
+            useEffect(() => {
+                if (!loading && !user) push('/login');
+            }, [user, loading, push]);
+
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    // 30GB theoretical limit
+                    if (file.size > 30 * 1024 * 1024 * 1024) {
+                        alert("عذراً، حجم الملف كبير جداً (الأقصى 30 جيجابايت)");
+                        e.target.value = null;
+                        return;
+                    }
+
+                    const url = URL.createObjectURL(file);
+                    const audio = new Audio(url);
+                    audio.onloadedmetadata = () => {
+                        if (audio.duration > 24 * 60) {
+                            alert("عذراً، يجب أن يكون الملف المرفوع أقل من 24 دقيقة.");
+                            setAudioFile(null);
+                            setAudioUrl(null);
+                            e.target.value = null;
+                        } else {
+                            setAudioDuration(audio.duration);
+                            setAudioFile(file);
+                            setAudioUrl(url);
+                        }
+                    };
+                }
+            };
+
+            const formatTime = (sec) => {
+                const m = Math.floor(sec / 60);
+                const s = Math.floor(sec % 60);
+                return `${m}:${s < 10 ? '0' : ''}${s}`;
+            };
+
+            const toSRTTime = (seconds) => {
+                const date = new Date(null);
+                date.setSeconds(seconds);
+                const ms = Math.floor((seconds % 1) * 1000);
+                const timeString = date.toISOString().substr(11, 8);
+                return `${timeString},${ms.toString().padStart(3, '0')}`;
+            };
+
+            const processSRT = async () => {
+                if (!audioFile || !poemText.trim()) return alert("يرجى رفع الملف الصوتي وإدخال نص القصيدة");
+                if (user.credits < 3) return alert("عذراً، رصيدك لا يكفي.");
+
+                const success = await deductCredits(3);
+                if (!success) return;
+
+                setStatus('processing');
+                setResultFile(null);
+                setAccuracy(0);
+
+                const logs = [
+                    "بدء عزل الترددات الصوتية وتصفية الضجيج (Vocal Isolation)...",
+                    "تحليل قمم الطاقة الصوتية ورصد 'النبرات' (Onset Detection)...",
+                    "تطبيق التصفية الرقمية (Bandpass Filter: 300Hz-3.4kHz)...",
+                    "رسم الخريطة الزمنية للإيقاع الشعري والحركي...",
+                    "مطابقة أوزان الكلمات مع ذبذبات الأداء الحقيقي...",
+                    "معالجة فواصل التنفس والسكتات بناءً على تحليل الموجات...",
+                    "التدقيق النهائي وتوليد ملف المزامنة الاحترافي v7..."
+                ];
+
+                const lines = poemText.split('\n').filter(l => l.trim() !== '');
+                if (lines.length === 0) return alert("يرجى إدخال كلمات القصيدة.");
+
+                try {
+                    setLog("جاري تجهيز الملفات للرفع السحابي (Cloud Engine)...");
+                    setProgress(15);
+
+                    const formData = new FormData();
+                    formData.append('audio', audioFile);
+                    formData.append('text', poemText);
+
+                    setLog("يتم الآن إرسال المسار الصوتي لمركز المزامنة السحابي...");
+                    setProgress(40);
+
+                    const startTime = Date.now();
+                    const response = await fetch('/api/srt', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) throw new Error('فشل الاتصال بمركز المزامنة السحابي (Backend Error)');
+
+                    const data = await response.json();
+
+                    setLog(`استلام النتيجة النهائية من المحرك السحابي بنجاح.`);
+                    setProgress(90);
+
+                    const blob = new Blob([data.srt], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    setResultFile(url);
+                    setAccuracy(data.accuracy);
+
+                    addHistoryItem({
+                        type: 'srt',
+                        name: `مزامنة سحابية احترافية: ${audioFile.name}`,
+                        status: 'completed',
+                        url: url,
+                        date: new Date().toLocaleDateString('en-GB')
+                    });
+
+                    setProgress(100);
+                    setTimeout(() => setStatus('success'), 600);
+
+                } catch (e) {
+                    console.error("Cloud SRT Error", e);
+                    alert("خطأ: فشل إرسال الملف لمركز المزامنة. تأكد من تشغيل المشروع عبر التيرمينال (npm run dev) لتفعيل السيرفر السحابي.");
+                    setStatus('input');
+                }
+            };
+
+            if (loading || !user) return null;
+
+            return (
+                <div className="container animate-fade-in" style={{ padding: '20px', maxWidth: '1200px' }}>
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px' }}>
+                        <BackButton />
+                        <h2 style={{ margin: 0 }}>📜 {t('tools_srt')}</h2>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '30px' }}>
+                        {/* Column 1: Settings */}
+                        <div className="card" style={{ padding: '25px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)' }}>⚙️ {t('mix_settings_title')}</h3>
+
+                            <div className="form-group">
+                                <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', fontSize: '0.9rem' }}>1. رفع الملف الصوتي (الأقصى 24 دقيقة / 30GB)</label>
+                                <div
+                                    className="card"
+                                    style={{ padding: '20px', border: '2px dashed var(--border)', textAlign: 'center', background: 'rgba(255,255,255,0.02)', cursor: 'pointer', transition: '0.3s' }}
+                                    onClick={() => document.getElementById('srt-upload-v4').click()}
+                                >
+                                    <input type="file" onChange={handleFileChange} accept="audio/*,audio/mpeg,.mpeg" style={{ display: 'none' }} id="srt-upload-v4" />
+                                    <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>🎙️</div>
+                                    <div style={{ fontSize: '0.9rem' }}>{audioFile ? audioFile.name : "اضغط لرفع تراك القصيدة"}</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '5px' }}>{audioDuration > 0 ? `مدة الملف: ${formatTime(audioDuration)}` : 'MP3, WAV, MPEG (بحد أقصى 24 دقيقة)'}</div>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', fontSize: '0.9rem' }}>2. نص القصيدة الكامل</label>
+                                <textarea
+                                    value={poemText}
+                                    onChange={(e) => setPoemText(e.target.value)}
+                                    placeholder="أدخل كلمات القصيدة هنا..."
+                                    className="input-field"
+                                    style={{ width: '100%', height: '140px', resize: 'vertical', fontSize: '0.9rem' }}
+                                />
+                            </div>
+
+                            <div style={{ textAlign: 'center', padding: '15px', background: 'rgba(212, 175, 55, 0.05)', borderRadius: '12px' }}>
+                                <div style={{ fontSize: '0.9rem', marginBottom: '5px' }}>تكلفة الترجمة والمزامنة:</div>
+                                <div className="badge" style={{ fontSize: '1.2rem', padding: '8px 25px' }}>3 {t('credits')} 🪙</div>
+                            </div>
+
+                            <button
+                                onClick={processSRT}
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '15px', fontSize: '1.1rem' }}
+                                disabled={!audioFile || !poemText || status === 'processing'}
+                            >
+                                {status === 'processing' ? '⏳ جاري المعالجة...' : '🚀 ابدأ المزامنة الآن'}
+                            </button>
+                        </div>
+
+                        {/* Column 2: Result / Preview */}
+                        <div className="card" style={{ padding: '25px', display: 'flex', flexDirection: 'column', minHeight: '400px', justifyContent: 'center', alignItems: 'center' }}>
+                            {status === 'input' && audioUrl && (
+                                <div style={{ width: '100%', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🎧</div>
+                                    <h3 style={{ marginBottom: '15px' }}>معاينة المقطع الصوتي</h3>
+                                    <audio controls src={audioUrl} style={{ width: '100%', marginBottom: '20px' }} />
+                                    <div className="badge" style={{ background: 'rgba(76, 175, 80, 0.1)', color: '#4caf50', border: '1px solid #4caf50' }}>
+                                        ✓ الملف صالح ({formatTime(audioDuration)})
+                                    </div>
+                                    <button onClick={() => { setAudioFile(null); setAudioUrl(null); }} className="btn btn-outline" style={{ marginTop: '20px', width: '100%' }}>تغيير الملف</button>
+                                </div>
+                            )}
+
+                            {status === 'input' && !audioUrl && (
+                                <div style={{ textAlign: 'center', opacity: 0.5 }}>
+                                    <div style={{ fontSize: '5rem', marginBottom: '20px' }}>📜</div>
+                                    <h3>بانتظار الملف...</h3>
+                                    <p style={{ fontSize: '0.9rem' }}>ارفع ملف القصيدة لبدء المزامنة</p>
+                                </div>
+                            )}
+
+                            {status === 'processing' && (
+                                <div style={{ width: '100%', textAlign: 'center' }}>
+                                    <h3 style={{ marginBottom: '30px' }}>جاري التحليل والمزامنة (أدنى استهلاك للموارد)...</h3>
+                                    <div style={{ width: '100%', height: '10px', background: 'var(--surface)', borderRadius: '5px', overflow: 'hidden', marginBottom: '20px', border: '1px solid var(--border)' }}>
+                                        <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 100%)', transition: 'width 15s linear' }}></div>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                        <span>{log}</span>
+                                        <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{progress}%</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.8rem', marginTop: '20px', opacity: 0.6 }}>تم تخفيف حمل المعالجة لتناسب جهازك</p>
+                                </div>
+                            )}
+
+                            {status === 'success' && (
+                                <div className="animate-fade-in" style={{ textAlign: 'center', width: '100%' }}>
+                                    <div style={{ width: '80px', height: '80px', background: 'var(--success)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '2.5rem' }}>✅</div>
+                                    <h2 style={{ color: 'var(--success)', marginBottom: '5px' }}>تمت المزامنة بنجاح!</h2>
+
+                                    <div className="card" style={{ padding: '15px', background: 'rgba(76, 175, 80, 0.05)', border: '1px solid var(--success)', borderRadius: '12px', marginBottom: '25px', width: '100%' }}>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>نسبة تطابق النص مع الصوت:</div>
+                                        <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--success)' }}>{accuracy}%</div>
+                                        <div style={{ fontSize: '0.7rem', opacity: 0.7, marginTop: '5px' }}>تم تحليل {poemText.split('\n').filter(l => l.trim() !== '').length} أبيات شعرية</div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', width: '100%' }}>
+                                        <a href={resultFile} download={`${audioFile?.name || 'poem'}.srt`} className="btn btn-primary" style={{ flex: 1 }}>⬇️ تحميل SRT</a>
+                                        <button onClick={() => { setStatus('input'); setAudioFile(null); setAudioUrl(null); setPoemText(''); }} className="btn btn-outline" style={{ flex: 1 }}>عمل جديد</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function PricingPage() {
+            const { addCredits, user, t } = useAuth();
+            const { push } = useRouter();
+            const [processing, setProcessing] = useState(null);
+            const [showPayment, setShowPayment] = useState(null); // To show payment instructions per package
+
+            const packages = [
+                { id: 1, price: 5, credits: 25, name: "الباقة الأساسية", color: '#ffffff' },
+                { id: 2, price: 15, credits: 35, name: "الباقة المتقدمة", color: '#d4af37' },
+                { id: 3, price: 20, credits: 50, name: "باقة المحترفين", color: '#000000', border: true }
+            ];
+
+            const handleBuy = async (pkg) => {
+                if (!user) return push('/login');
+                setShowPayment(pkg);
+            };
+
+            const confirmPayment = async (pkg) => {
+                setProcessing(pkg.id);
+                try {
+                    // In a real scenario, this would notify the admin. 
+                    // For now, we simulate the wait then add credits.
+                    await new Promise(r => setTimeout(r, 2000));
+                    const success = await addCredits(pkg.credits);
+
+                    if (success) {
+                        alert(`تم استلام طلب الشحن! سيتم إضافة ${pkg.credits} كريديت لحسابك بعد التأكد من التحويل.`);
+                        setShowPayment(null);
+                        push('/dashboard');
+                    }
+                } catch (err) {
+                    alert('فشلت العملية.');
+                }
+                setProcessing(null);
+            };
+
+            return (
+                <div className="container animate-fade-in" style={{ padding: '60px 20px', textAlign: 'center' }}>
+                    <BackButton />
+                    <h1 style={{ marginBottom: '10px' }}>{t('pricing_title')}</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>اختر الباقة المناسبة لشحن رصيدك</p>
+
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap', marginTop: '40px' }}>
+                        {packages.map((pkg) => (
+                            <div key={pkg.id} className="card" style={{ width: '300px', padding: '40px 20px', border: pkg.border ? '2px solid var(--primary)' : '1px solid var(--border)', transform: pkg.border ? 'scale(1.05)' : 'none', position: 'relative' }}>
+                                {pkg.border && <div className="badge" style={{ marginBottom: '20px', background: 'var(--primary)', color: '#000', display: 'inline-block' }}>الأكثر طلباً</div>}
+                                <h2 style={{ fontSize: '1.5rem' }}>{pkg.name}</h2>
+                                <div style={{ fontSize: '3rem', fontWeight: 'bold', margin: '20px 0', color: 'var(--primary)' }}>${pkg.price}</div>
+                                <div style={{ fontSize: '1.2rem', marginBottom: '30px', fontWeight: 'bold' }}>{pkg.credits} كريديت</div>
+                                <button onClick={() => handleBuy(pkg)} className={`btn ${pkg.border ? 'btn-primary' : 'btn-outline'}`} style={{ width: '100%' }}>
+                                    شراء الآن
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Payment Instruction Modal */}
+                    {showPayment && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                            <div className="card animate-fade-in" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', border: '1px solid var(--primary)' }}>
+                                <h2 style={{ color: 'var(--primary)', marginBottom: '20px' }}>إكمال عملية الشراء</h2>
+                                <p style={{ marginBottom: '20px' }}>يرجى تحويل مبلغ <b>${showPayment.price}</b> عبر BenefitPay</p>
+
+                                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '30px', borderRadius: '12px', border: '1px dashed var(--border)', margin: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                                    <div style={{ width: '180px', height: '180px', background: 'white', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                                        [BenefitPay QR Code]
+                                    </div>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>امسح الكود أعلاه لإتمام الدفع بسرعة</p>
+                                </div>
+
+                                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '25px' }}>
+                                    بعد إتمام التحويل، اضغط على زر "تأكيد" أدناه ليتم مراجعة الطلب وتفعيل الرصيد.
+                                </p>
+
+                                <div style={{ display: 'flex', gap: '15px' }}>
+                                    <button onClick={() => confirmPayment(showPayment)} className="btn btn-primary" style={{ flex: 1 }} disabled={processing}>
+                                        {processing ? 'جاري التأكيد...' : 'تأكيد التحويل'}
+                                    </button>
+                                    <button onClick={() => setShowPayment(null)} className="btn btn-outline" style={{ flex: 1 }}>إلغاء</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function App() {
+            const { path } = useRouter();
+            const { loading, isBlurring, lang, user } = useAuth();
+            let Component = HomePage;
+            if (path === '/') Component = HomePage;
+            else if (path === '/login') Component = LoginPage;
+            else if (path === '/register') Component = RegisterPage;
+            else if (path === '/dashboard') Component = DashboardPage;
+            else if (path === '/image-gen') Component = ImageGenPage;
+            else if (path === '/mix') Component = MixPage; // Fallback
+            else if (path.startsWith('/mix')) Component = MixPage;
+            else if (path === '/srt') Component = SRTPage;
+            else if (path === '/pricing') Component = PricingPage;
+            else if (path === '/profile') Component = ProfilePage;
+            else if (path === '/history') Component = HistoryPage;
+
+            console.log('App Rendering, path:', path, 'loading:', loading);
+
+            if (loading) return (
+                <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#000000', color: '#fff' }}>
+                    <div className="animate-spin" style={{ fontSize: '3rem', marginBottom: '15px' }}>⌛</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>جاري تهيئة منصة منبر...</div>
+                </div>
+            );
+
+            return (
+                <div className={`blur-container ${isBlurring ? 'blur-switching' : ''}`} dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+                    <Navbar />
+                    <main style={{ flex: 1 }}>
+                        <Component />
+                    </main>
+                </div>
+            );
+        }
+
+        console.log('Mounting React app...');
+        const rootElement = document.getElementById('root');
+        if (!rootElement) {
+            console.error('Fatal: #root element not found!');
+            document.body.innerHTML = '<h1 style="color:white;text-align:center;padding:50px;">خطأ داخلي: تعذر تحميل واجهة المستخدم</h1>';
+        } else {
+            const root = ReactDOM.createRoot(rootElement);
+            try {
+                root.render(
+                    <RouterProvider>
+                        <AuthProvider>
+                            <App />
+                        </AuthProvider>
+                    </RouterProvider>
+                );
+                console.log('Initial render triggered');
+                // Force background change after render to prove JS is working
+                setTimeout(() => {
+                    document.body.style.background = 'var(--background)';
+                }, 100);
+            } catch (e) {
+                console.error('Critical Render Error:', e);
+                rootElement.innerHTML = `<div style="color:white;padding:20px;text-align:center;">
+                    <h2>عذراً، حدث خطأ أثناء تشغيل الموقع</h2>
+                    <p>${e.message}</p>
+                    <button onclick="location.reload()" class="btn btn-primary">إعادة تحميل</button>
+                </div>`;
+            }
+        }
+    </script>
+</body>
+
+</html>
