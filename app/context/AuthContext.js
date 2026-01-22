@@ -19,50 +19,38 @@ export function AuthProvider({ children }) {
 
     // مراقبة حالة تسجيل الدخول وتغيرات قاعدة البيانات
     useEffect(() => {
-        let unsubscribe = () => { };
-
-        try {
-            unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-                if (currentUser) {
-                    setUser(currentUser);
-                    // المستخدم سجل دخوله، نراقب بياناته في Firestore
-                    const userRef = doc(db, "users", currentUser.uid);
-                    const unsubDb = onSnapshot(userRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            setUserData(docSnap.data());
-                        } else {
-                            // إنشاء بيانات أولية إذا لم تكن موجودة
-                            const initialData = {
-                                name: currentUser.displayName || 'مستخدم جديد',
-                                email: currentUser.email,
-                                credits: 10, // رصيد مجاني للبداية
-                                history: [],
-                                joinedAt: new Date().toISOString()
-                            };
-                            setDoc(userRef, initialData).catch(e => console.error("Firestore Error:", e));
-                            setUserData(initialData);
-                        }
-                        setLoading(false);
-                    }, (err) => {
-                        console.error("Firestore Snapshot Error, falling back to local:", err);
-                        // Fallback data if Firestore permission denied or fails
-                        setUserData({ name: currentUser.displayName, email: currentUser.email, credits: 10, history: [] });
-                        setLoading(false);
-                    });
-                } else {
-                    // Only clear if we are NOT in a mock session
-                    // We can check if the current user state is a 'mock' one
-                    setUser(prev => prev?.isMock ? prev : null);
-                    setUserData(prev => prev?.isMock ? prev : null);
+        let unsubAuth = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                setUser(currentUser);
+                const userRef = doc(db, "users", currentUser.uid);
+                return onSnapshot(userRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        setUserData(docSnap.data());
+                    } else {
+                        const initialData = {
+                            name: currentUser.displayName || 'مستخدم جديد',
+                            email: currentUser.email,
+                            credits: 10,
+                            history: [],
+                            joinedAt: new Date().toISOString()
+                        };
+                        setDoc(userRef, initialData).catch(e => console.error("Firestore Error:", e));
+                        setUserData(initialData);
+                    }
                     setLoading(false);
-                }
-            });
-        } catch (e) {
-            console.error("Firebase Auth Init Error:", e);
-            setLoading(false);
-        }
+                }, (err) => {
+                    console.error("Firestore Snapshot Error:", err);
+                    setUserData({ name: currentUser.displayName, email: currentUser.email, credits: 10, history: [] });
+                    setLoading(false);
+                });
+            } else {
+                setUser(prev => prev?.isMock ? prev : null);
+                setUserData(prev => prev?.isMock ? prev : null);
+                setLoading(false);
+            }
+        });
 
-        return () => unsubscribe();
+        return () => unsubAuth();
     }, []);
 
     // --- MOCK HELPERS ---
