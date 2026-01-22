@@ -19,11 +19,12 @@ export function AuthProvider({ children }) {
 
     // مراقبة حالة تسجيل الدخول وتغيرات قاعدة البيانات
     useEffect(() => {
-        let unsubAuth = onAuthStateChanged(auth, (currentUser) => {
+        let unsubDb = null;
+        const unsubAuth = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
                 const userRef = doc(db, "users", currentUser.uid);
-                return onSnapshot(userRef, (docSnap) => {
+                unsubDb = onSnapshot(userRef, (docSnap) => {
                     if (docSnap.exists()) {
                         setUserData(docSnap.data());
                     } else {
@@ -44,13 +45,17 @@ export function AuthProvider({ children }) {
                     setLoading(false);
                 });
             } else {
+                if (unsubDb) unsubDb();
                 setUser(prev => prev?.isMock ? prev : null);
                 setUserData(prev => prev?.isMock ? prev : null);
                 setLoading(false);
             }
         });
 
-        return () => unsubAuth();
+        return () => {
+            unsubAuth();
+            if (unsubDb) unsubDb();
+        };
     }, []);
 
     // --- MOCK HELPERS ---
